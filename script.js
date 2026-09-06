@@ -42,6 +42,14 @@ const mediaLibrary = {
     width: 640,
     height: 853,
     category: "campanha"
+  },
+  selectionFeatured: {
+    src: "img/selecao_destaque.jpg",
+    alt: "Curadoria de alfaiataria e moda masculina de alto padrão Puro Luxo",
+    positionClass: "pos-center",
+    width: 640,
+    height: 480,
+    category: "editorial"
   }
 };
 
