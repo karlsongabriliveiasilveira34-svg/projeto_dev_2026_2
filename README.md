@@ -2,7 +2,7 @@
 
 Sistema web completo para curadoria e agendamento de atendimentos exclusivos de moda masculina de alto padrão da **Puro Luxo Grife** (Montes Claros - MG), com persistência em banco de dados (**PostgreSQL** com fallback transparente para **SQLite** local), criptografia de dados sensíveis (**AES-256-GCM**), proteção por **Rate Limiting**, módulo de gestão dinâmica de serviços e painel administrativo protegido por autenticação de sessão.
 
-Projeto desenvolvido para o desafio técnico de Desenvolvedor(a) Júnior Full Stack da **Mupi Systems**.
+Projeto desenvolvido para o desafio técnico da **Mupi Systems** (`mupisystems/projeto_estagio_2026_2`).
 
 ---
 
