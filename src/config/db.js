@@ -47,6 +47,19 @@ function initSqliteFallback() {
     `);
 
     sqliteDb.run(`
+      CREATE TABLE IF NOT EXISTS opcoes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        titulo TEXT NOT NULL,
+        descricao TEXT,
+        preco TEXT,
+        duracao TEXT,
+        ativa INTEGER NOT NULL DEFAULT 1,
+        criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+        atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    sqliteDb.run(`
       CREATE TABLE IF NOT EXISTS agendamentos (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         nome TEXT NOT NULL,
@@ -58,9 +71,13 @@ function initSqliteFallback() {
         horario TEXT NOT NULL,
         observacoes TEXT,
         status TEXT NOT NULL DEFAULT 'pendente',
-        criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
+        criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+        atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP
       );
     `);
+
+    // Assegura existencia de atualizado_em caso a tabela agendamentos ja tenha sido criada anteriormente
+    sqliteDb.run('ALTER TABLE agendamentos ADD COLUMN atualizado_em DATETIME', () => {});
 
     // Criar admin padrao no fallback se nao existir
     const adminEmail = (process.env.ADMIN_DEFAULT_EMAIL || 'admin@puroluxo.com').trim().toLowerCase();

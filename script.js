@@ -445,6 +445,37 @@ function setupBookingForm() {
     alertBox.style.display = "none";
   }
 
+  // Carregamento dinâmico das opções ativas de serviços gerenciadas no painel
+  async function loadBookingOptions() {
+    if (!tipoInput) return;
+    try {
+      const res = await fetch("/api/opcoes");
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data && data.sucesso && Array.isArray(data.opcoes) && data.opcoes.length > 0) {
+        const currentVal = tipoInput.value;
+        tipoInput.innerHTML = '<option value="" disabled selected>Selecione um atendimento...</option>';
+        data.opcoes.forEach((op) => {
+          const opt = document.createElement("option");
+          opt.value = op.titulo;
+          const details = [];
+          if (op.duracao) details.push(op.duracao);
+          if (op.preco) details.push(op.preco);
+          const detailStr = details.length > 0 ? ` (${details.join(" • ")})` : "";
+          opt.textContent = `${op.titulo}${detailStr}`;
+          tipoInput.appendChild(opt);
+        });
+        if (currentVal) {
+          tipoInput.value = currentVal;
+        }
+      }
+    } catch (err) {
+      console.warn("[OPCOES] Utilizando opcoes pre-carregadas de fallback:", err);
+    }
+  }
+
+  loadBookingOptions();
+
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     hideAlert();

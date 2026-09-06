@@ -64,10 +64,10 @@ async function create(req, res) {
 
     const insertSql = `
       INSERT INTO agendamentos 
-        (nome, email_encrypted, email_hash, telefone, tipo, data, horario, observacoes, status)
+        (nome, email_encrypted, email_hash, telefone, tipo, data, horario, observacoes, status, criado_em, atualizado_em)
       VALUES 
-        ($1, $2, $3, $4, $5, $6, $7, $8, 'pendente')
-      RETURNING id, nome, tipo, data, horario, status, criado_em;
+        ($1, $2, $3, $4, $5, $6, $7, $8, 'pendente', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      RETURNING id, nome, tipo, data, horario, status, criado_em, atualizado_em;
     `;
 
     const result = await query(insertSql, [
@@ -94,6 +94,7 @@ async function create(req, res) {
         horario: novoAgendamento.horario,
         status: novoAgendamento.status,
         criado_em: novoAgendamento.criado_em,
+        atualizado_em: novoAgendamento.atualizado_em,
       },
     });
   } catch (error) {
@@ -110,14 +111,18 @@ async function create(req, res) {
  */
 async function list(req, res) {
   try {
-    const { status, busca } = req.query;
+    const { status, busca, page, limit } = req.query;
 
-    let sql = 'SELECT * FROM agendamentos WHERE 1=1';
+    const currentPage = Math.max(1, parseInt(page || '1', 10));
+    const perPage = Math.min(50, Math.max(1, parseInt(limit || '8', 10)));
+    const offset = (currentPage - 1) * perPage;
+
+    let whereClause = ' WHERE 1=1';
     const params = [];
 
     if (status && STATUS_PERMITIDOS.includes(status)) {
       params.push(status);
-      sql += ` AND status = $${params.length}`;
+      whereClause += ` AND status = $${params.length}`;
     }
 
     if (busca && busca.trim().length > 0) {
@@ -128,13 +133,30 @@ async function list(req, res) {
       params.push(searchHash);
       const hashIndex = params.length;
 
-      sql += ` AND (nome ILIKE $${termoIndex} OR telefone ILIKE $${termoIndex} OR tipo ILIKE $${termoIndex} OR observacoes ILIKE $${termoIndex} OR email_hash = $${hashIndex})`;
+      whereClause += ` AND (nome ILIKE $${termoIndex} OR telefone ILIKE $${termoIndex} OR tipo ILIKE $${termoIndex} OR observacoes ILIKE $${termoIndex} OR email_hash = $${hashIndex})`;
     }
 
-    // Ordenacao por data da solicitacao/atendimento (e secundariamente por horario e criacao)
-    sql += ' ORDER BY data DESC, horario DESC, criado_em DESC';
+    // 1. Contagem total de registros com base nos filtros
+    const countSql = `SELECT COUNT(*) as total FROM agendamentos${whereClause}`;
+    const countRes = await query(countSql, params);
+    const total = parseInt(countRes.rows[0].total, 10);
+    const totalPages = Math.ceil(total / perPage) || 1;
 
-    const result = await query(sql, params);
+    // 2. Consulta paginada ordenada por data
+    const queryParams = [...params];
+    queryParams.push(perPage);
+    const limitIndex = queryParams.length;
+    queryParams.push(offset);
+    const offsetIndex = queryParams.length;
+
+    const sql = `
+      SELECT * FROM agendamentos 
+      ${whereClause} 
+      ORDER BY data DESC, horario DESC, criado_em DESC 
+      LIMIT $${limitIndex} OFFSET $${offsetIndex}
+    `;
+
+    const result = await query(sql, queryParams);
 
     // Descriptografa os e-mails apenas na memoria para a visualizacao do administrador
     const agendamentos = result.rows.map((row) => ({
@@ -148,11 +170,16 @@ async function list(req, res) {
       observacoes: row.observacoes,
       status: row.status,
       criado_em: row.criado_em,
+      atualizado_em: row.atualizado_em,
     }));
 
     return res.status(200).json({
       sucesso: true,
-      total: agendamentos.length,
+      total,
+      totalRecords: total,
+      totalPages,
+      currentPage,
+      limit: perPage,
       agendamentos,
     });
   } catch (error) {
@@ -224,9 +251,9 @@ async function updateStatus(req, res) {
 
     const updateSql = `
       UPDATE agendamentos 
-      SET status = $1 
+      SET status = $1, atualizado_em = CURRENT_TIMESTAMP 
       WHERE id = $2 
-      RETURNING id, nome, status;
+      RETURNING id, nome, status, atualizado_em;
     `;
 
     const result = await query(updateSql, [status, idNum]);

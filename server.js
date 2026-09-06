@@ -13,6 +13,7 @@ const { apiLimiter } = require('./src/utils/rateLimiter');
 const authRoutes = require('./src/routes/authRoutes');
 const agendamentoRoutes = require('./src/routes/agendamentoRoutes');
 const adminRoutes = require('./src/routes/adminRoutes');
+const opcaoRoutes = require('./src/routes/opcaoRoutes');
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '3000', 10);
@@ -99,6 +100,7 @@ app.get('/admin', requirePageAuth, (req, res) => {
 // Rotas da API REST
 app.use('/api/auth', authRoutes);
 app.use('/api/agendamentos', agendamentoRoutes);
+app.use('/api/opcoes', opcaoRoutes);
 app.use('/api/admin', adminRoutes);
 
 // Health check da aplicacao e status do banco de dados

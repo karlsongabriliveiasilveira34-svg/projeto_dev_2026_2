@@ -28,7 +28,54 @@ async function seed() {
     console.log(`[DATABASE SEED] Usuario administrador ja existe: ${adminEmail}`);
   }
 
-  // 2. Criar agendamentos de exemplo se tabela estiver vazia
+  // 2. Criar opcoes de servicos VIP oferecidos (minimo 3 exigido pelo edital)
+  const checkOpcoes = await query('SELECT COUNT(*) as total FROM opcoes');
+  const countOpcoes = parseInt(checkOpcoes.rows[0].total, 10);
+
+  if (countOpcoes === 0) {
+    const opcoesIniciais = [
+      {
+        titulo: 'Consultoria de Imagem & Estilo',
+        descricao: 'Analise de perfil, proporcao e composicao de looks exclusivos com alfaiataria fina.',
+        preco: 'R$ 350,00',
+        duracao: '1h 30min',
+        ativa: true,
+      },
+      {
+        titulo: 'Prova Privada & Ajuste Sob Medida',
+        descricao: 'Atendimento reservado na loja com alfaiate para provas e ajustes milimetricos de caimento.',
+        preco: 'R$ 280,00',
+        duracao: '1h 00min',
+        ativa: true,
+      },
+      {
+        titulo: 'Curadoria de Colecao / Personal Shopper',
+        descricao: 'Selecao guiada dos principais lancamentos e pecas raras da grife com consultor VIP dedicado.',
+        preco: 'R$ 450,00',
+        duracao: '2h 00min',
+        ativa: true,
+      },
+      {
+        titulo: 'Atendimento VIP Online (Envios Nacionais)',
+        descricao: 'Videochamada exclusiva para clientes de outras cidades com curadoria e envio assegurado para todo o Brasil.',
+        preco: 'Cortesia',
+        duracao: '45min',
+        ativa: true,
+      },
+    ];
+
+    for (const op of opcoesIniciais) {
+      await query(
+        'INSERT INTO opcoes (titulo, descricao, preco, duracao, ativa) VALUES ($1, $2, $3, $4, $5)',
+        [op.titulo, op.descricao, op.preco, op.duracao, op.ativa]
+      );
+    }
+    console.log(`[DATABASE SEED] ${opcoesIniciais.length} opcoes de servicos VIP criadas com sucesso.`);
+  } else {
+    console.log(`[DATABASE SEED] Tabela opcoes ja contem ${countOpcoes} registros.`);
+  }
+
+  // 3. Criar agendamentos de exemplo se tabela estiver vazia
   const checkAgendamentos = await query('SELECT COUNT(*) as total FROM agendamentos');
   const count = parseInt(checkAgendamentos.rows[0].total, 10);
 

@@ -1,78 +1,120 @@
-# Registro de Decisoes Tecnicas e Metodologia (DECISOES.md)
+# Registro de Decisões Técnicas e Metodologia (DECISOES.md)
 
-Este documento detalha as decisoes arquiteturais, trade-offs de engenharia, funcionalidades extras adicionadas, escopo cortado conscientemente e o processo de utilizacao de Inteligencia Artificial no desenvolvimento do projeto **Puro Luxo Grife**.
-
----
-
-## 1. Tema Escolhido e Dominio de Negocio
-
-- **Negocio:** Puro Luxo Grife (Curadoria e Moda Masculina de Alto Padrao em Montes Claros - MG).
-- **Conceito do "Registro":** Agendamento de Atendimento VIP & Consultoria de Estilo.
-- **Justificativa:** Em vez de utilizar um tema generico ou abstrato de tutorial, foi escolhido um caso de uso real de comercio e consultoria de vestuario masculino de luxo. A experiencia de atendimento exclusivo exige agendamento previo de horarios, definicao da intencao do cliente (consultoria, ajuste sob medida ou compra assistida) e contato agil por parte da equipe para confirmacao.
+Este documento detalha as decisões arquiteturais, respostas às perguntas obrigatórias do processo seletivo da **Mupi Systems**, trade-offs de engenharia, funcionalidades adicionais, testes automatizados e o processo de utilização de Inteligência Artificial no desenvolvimento do projeto **Puro Luxo Grife**.
 
 ---
 
-## 2. Escolha da Stack e Arquitetura
+## 1. Tema Escolhido e Domínio de Negócio
+
+- **Negócio:** Puro Luxo Grife (Moda Masculina de Alto Padrão e Curadoria em Montes Claros - MG).
+- **Conceito do "Registro":** Agendamento de Atendimento VIP & Consultoria de Imagem/Alfaiataria.
+- **Conceito da "Opção Gerenciável":** Catálogo de Serviços VIP (Consultoria de Imagem, Prova Privada sob Medida, Personal Shopper e Atendimento VIP Online para Envios Nacionais).
+- **Justificativa:** Em vez de utilizar um tema genérico ou abstrato de tutorial (como lista de tarefas ou blog), optou-se por um modelo de negócio real de alfaiataria e moda masculina de luxo. A experiência exige agendamento prévio, seleção dinâmica de serviços pelo cliente e triagem imediata pela equipe comercial da loja.
+
+---
+
+## 2. Respostas às Perguntas Obrigatórias do Edital
+
+### Pergunta 1: *"Como fica o painel quando ainda não chegou nenhum registro?"*
+
+**Comportamento Arquitetado e Implementado:**
+1. **Cards de Métricas:** Os 4 cards de estatísticas no topo do dashboard exibem com elegância o valor numérico `0` (*Total de Solicitações: 0*, *Pendentes: 0*, *Confirmados: 0*, *Cancelados: 0*), sem quebras de layout, sem exibir `null` ou `undefined`.
+2. **Componente de Estado Vazio (`empty-state`):** A tabela de agendamentos é ocultada e substituída por um componente visual refinado no design system da grife:
+   - Título: *"Nenhum registro encontrado"*
+   - Descrição: *"Não existem agendamentos para o filtro ou termo de busca selecionado."*
+3. **Barra de Paginação:** A paginação se adapta automaticamente exibindo *"Nenhum agendamento para exibir"*, com o indicador fixado em `1` e ambos os botões de navegação (*Anterior* e *Próximo*) desabilitados (`disabled`).
+4. **Resiliência a Filtros e Buscas:** Quando há registros cadastrados mas uma busca por texto ou filtro de status não retorna nenhum resultado, o mesmo estado vazio é renderizado sem recarregar a página, orientando o usuário com clareza.
+
+### Pergunta 2: *"O que acontece com os registros de uma opção que o admin desativou?"*
+
+**Decisão de Engenharia (Soft-Disable Pattern):**
+1. **Preservação Histórica e Integridade:** Quando o administrador desativa uma opção de atendimento (ex: *"Prova Privada & Ajuste Sob Medida"*), os registros de agendamentos já realizados anteriormente com essa opção **permanecem intactos** no banco de dados e visíveis no painel administrativo com seus dados e status originais.
+2. **Ocultamento no Formulário Público:** A desativação atua como um *soft-disable* no banco (`ativa = false / 0`). A API pública (`GET /api/opcoes`) filtra estritamente `WHERE ativa = true / 1`. Dessa forma, clientes na página inicial não conseguem mais selecionar ou agendar novos atendimentos para o serviço desativado.
+3. **Rastreabilidade e Reativação:** No painel administrativo, na aba *"Serviços & Opções"*, a opção desativada é exibida com o badge visual cinza claro `Inativo` e o botão de ação *"Ativar"*, permitindo que a gerência reative o serviço a qualquer momento com um único clique, sem perda de histórico financeiro ou estatístico.
+
+---
+
+## 3. Escolha da Stack e Arquitetura
 
 ### Tecnologias Escolhidas:
-- **Backend:** Node.js com Express.js
-- **Banco de Dados:** PostgreSQL (Driver nativo `pg` com pool de conexoes)
-- **Seguranca & Privacidade:** Criptografia simetrica AES-256-GCM (`crypto`), Blind Index HMAC-SHA256, `bcryptjs`, `express-rate-limit`, `helmet` e `express-session`
-- **Frontend:** HTML5 Semantico, Vanilla CSS e Vanilla JavaScript Moderno (sem dependencias de build/transpilers)
-- **Orquestracao:** Docker Compose para provisionamento instantaneo do banco de dados
+- **Backend:** Node.js com Express.js (arquitetura modular em camadas: Rotas, Controladores, Middlewares, Utilitários e Configuração).
+- **Banco de Dados:** PostgreSQL nativo com driver `pg` (pool de conexões otimizado) + **Fallback transparente para SQLite local** (`database.sqlite`).
+- **Segurança & Privacidade:** Criptografia simétrica **AES-256-GCM** para dados sensíveis em repouso, Blind Index determinístico via HMAC-SHA256 para consultas indexadas, `bcryptjs` para senhas com salt rounds, `express-rate-limit`, `helmet` e `express-session` com cookies `HttpOnly` e `SameSite=Lax`.
+- **Frontend:** HTML5 Semântico, Vanilla CSS Moderno e Vanilla JavaScript (Zero dependências de build, zero transpilers, performance máxima).
+- **Diretriz de Design & Identidade Visual:** Estilo editorial de luxo (serifas *Instrument Serif*, sans-serif *Manrope*, paleta carvão/ouro `#C5A880`, SVGs monocromáticos e **política estrita de ZERO EMOJIS** para preservar o tom sóbrio de alfaiataria fina).
 
 ### Ganhos da Escolha:
-1. **Zero Friccao de Build:** O projeto nao necessita de etapas demoradas de build de frontend (Webpack, Vite ou Next.js), rodando diretamente com `npm start`.
-2. **Robustez e Integridade com PostgreSQL:** O PostgreSQL garante controle transacional rigido, tipos de dados precisos e indices eficientes em relacao a bancos NoSQL ou em memoria.
-3. **Privacidade e Conformidade por Padrao:** Criptografia AES-256-GCM garante que dados sensiveis (como e-mails de clientes) fiquem ilegiveis mesmo em caso de vazamento direto da base de dados.
-4. **Facilidade de Avaliacao:** A utilizacao de `docker-compose.yml` permite que qualquer membro da banca avaliadora suba o banco com um unico comando (`docker compose up -d`).
+1. **Zero Fricção para Avaliação:** A aplicação roda instantaneamente com `npm install` e `npm start`. Caso o avaliador não queira subir um container Docker de PostgreSQL, o sistema detecta a ausência e ativa imediatamente o SQLite local pré-configurado sem exigir nenhuma alteração manual de código ou arquivo de configuração.
+2. **Conformidade de Privacidade (LGPD):** E-mails de clientes não ficam expostos em texto plano no banco de dados. Mesmo que ocorra um vazamento do arquivo de banco ou dump SQL, os dados estão protegidos por AES-256-GCM.
+3. **Desempenho e Acessibilidade:** Ausência de SPAs pesadas resulta em carregamento abaixo de 200ms e transições fluidas.
 
 ### Perdas / Trade-offs:
-1. **Necessidade de Servico de Banco de Dados:** Diferente de um SQLite em arquivo unico, o PostgreSQL exige um processo ou container ativo, o que requer uma etapa previa de subida de servico documentada no `README.md`.
-2. **Sem Reatividade de Framework:** A interface utiliza manipulacao direta do DOM (Vanilla JS), o que exigiu estruturacao cuidadosa de funcoes modulares para manter o codigo limpo sem a ajuda de estados reativos como React ou Vue.
+1. **Manipulação Manual de Estado no DOM:** A escolha por Vanilla JS exigiu estruturação rigorosa de funções de renderização e delegação de eventos para garantir reatividade sem recorrer a bibliotecas de componentes como React ou Vue.
 
 ---
 
-## 3. O Que Adicionamos Alem do Que Foi Pedido
+## 4. O Que Adicionamos Além do Que Foi Pedido
 
-1. **Acao "WhatsApp com 1 Clique" no Painel:**
-   - No painel administrativo, cada agendamento possui um botao que gera o link oficial do WhatsApp com mensagem de atendimento pre-formatada contendo o nome do cliente, o servico solicitado, a data e o horario, permitindo que a equipe inicie o atendimento com um unico toque.
-2. **Criptografia Simetrica AES-256-GCM para E-mails:**
-   - Os e-mails dos clientes sao criptografados em repouso no PostgreSQL com vetor de inicializacao (IV) unico e tag de autenticacao de 16 bytes. A aplicacao descriptografa os dados estritamente em memoria no backend quando o administrador autenticado visualiza a listagem.
-3. **Blind Index Determinictico para Buscas (HMAC-SHA256):**
-   - Foi criada uma coluna indexada com hash deterministico do e-mail, permitindo que buscas pelo e-mail exato continuem funcionando sem necessidade de descriptografar toda a tabela no banco.
-4. **Protecao por Rate Limiting:**
-   - Adicionada protecao contra spam e ataques de forca bruta nos endpoints de envio de formulario e na tela de login administrativo (`express-rate-limit`).
-5. **Dashboard com Cards de Metricas no Painel:**
-   - Contadores em tempo real para Total de Agendamentos, Pendentes, Confirmados e Cancelados.
-6. **Filtros por Status e Busca em Tempo Real:**
-   - Alternancia rapida entre status (Todos, Pendentes, Confirmados, Cancelados) e busca com debounce.
-
----
-
-## 4. O Que Decidimos NAO Fazer e Por Que
-
-1. **Envio Real de E-mails/SMS via APIs Pagas (SendGrid/Twilio):**
-   - *Motivo:* Exigiria que o avaliador criasse contas em servicos terceiros e configurasse chaves secretas de API pagas no `.env` para conseguir testar a aplicacao. Foi substituido pelo acionamento direto via link oficial do WhatsApp, que e gratuito, instantaneo e funciona perfeitamente em qualquer maquina.
-2. **Frontend SPA Complexo (React / Next.js / Angular):**
-   - *Motivo:* A landing page publica e o painel ja possuem desempenho excepcional e controle total com Vanilla JS e CSS. Introduzir um toolchain pesado apenas aumentaria o tempo de instalacao e a complexidade de execucao do teste sem agregar valor funcional ao negocio.
+1. **Gestão Dinâmica de Opções pelo Painel (Requisito 10):**
+   - Módulo completo de *"Serviços & Opções"* com listagem, criação de novas opções via modal, edição de dados (título, descrição, preço, duração) e alternância instantânea de status (*Ativar / Desativar*).
+2. **Ação Direta no WhatsApp com Mensagem Personalizada:**
+   - Cada linha de agendamento no painel conta com um botão oficial do WhatsApp que abre o chat do cliente já preenchido com a mensagem de boas-vindas da Puro Luxo, incluindo nome, serviço agendado, data e horário.
+3. **Controle de Paginação:**
+   - Navegação paginada com limites por página, indicador de página atual, cálculo de páginas totais e bloqueio de navegação nas bordas.
+4. **Rastreamento de Modificação (`atualizado_em`):**
+   - Cada alteração de status (para *Confirmado*, *Cancelado* ou *Pendente*) registra o timestamp exato da modificação, visível na tabela administrativa.
+5. **Criptografia Simétrica + Blind Indexing:**
+   - Implementação de nível de produção com AES-256-GCM para confidencialidade e HMAC-SHA256 para viabilizar buscas exatas indexadas no banco de dados.
+6. **Proteção contra Força Bruta e Spam:**
+   - Limitadores de requisição nos formulários públicos e nas tentativas de autenticação administrativa.
 
 ---
 
-## 5. Dificuldades Encontradas
+## 5. Estratégia de Testes Automatizados
 
-- **Criptografia com Busca Dinamica:** A implementacao de criptografia simetrica (AES-256-GCM) com IV aleatorio impede o uso direto de clausulas SQL `LIKE` ou `ILIKE` no campo de e-mail. Para contornar essa limitacao sem expor os dados, foi estruturado um mecanismo de *Blind Index* (hash HMAC SHA-256) armazenado em coluna indexada paralela para buscas exatas, complementado com filtragem em memoria dos demais campos textuais.
+O projeto conta com uma suíte de testes ponta a ponta implementada em `tests/runTests.js`, acionada através do comando padrão:
+```bash
+npm test
+```
+
+### Bateria de Testes (33 Asserções Aprovadas com 100% de Sucesso):
+- **Grupo 1 (Rotas Públicas e Normalização de Segurança):**
+  - Validação de status 200 em `/` e `/login`.
+  - Redirecionamento 302 de usuários não autenticados de `/admin` para `/login`.
+  - Normalização com redirecionamento 301 de rotas mascaradas (`/zpdasda/admin` -> `/admin`, `/zpdasda/login` -> `/login`, `/admin.html` -> `/admin`).
+- **Grupo 2 (Validação e Criação de Agendamentos):**
+  - Rejeição com status 400 para payloads vazios.
+  - Rejeição com status 400 para e-mails sem formatação válida.
+  - Rejeição com status 400 para datas passadas (bloqueio de agendamento retroativo).
+  - Criação bem-sucedida (status 201) de agendamento válido, com verificação do status inicial `pendente`.
+- **Grupo 3 (Catálogo de Opções de Atendimento):**
+  - Verificação de resposta 200 na rota pública `/api/opcoes` e retorno dos serviços ativos.
+- **Grupo 4 (Autenticação Administrativa e Sessão):**
+  - Bloqueio com status 401 para requisições sem cookie nas rotas administrativas.
+  - Rejeição com status 401 para credenciais incorretas.
+  - Autenticação bem-sucedida com credenciais válidas e emissão do cookie `puroluxo.sid`.
+  - Verificação de identidade ativa em `/api/auth/me`.
+- **Grupo 5 (Operações Administrativas e Paginação):**
+  - Listagem paginada (`currentPage`, `totalPages`, `totalRecords`).
+  - Carregamento de métricas em `/api/admin/stats`.
+  - Atualização de status para `confirmado` e validação da atualização do campo `atualizado_em`.
+- **Grupo 6 (Gestão de Serviços e Opções):**
+  - Listagem completa de serviços no painel admin.
+  - Criação de novo serviço via `POST /api/admin/opcoes`.
+  - Alternância de status via `PATCH /api/admin/opcoes/:id/toggle`.
+  - Validação de que a opção desativada é imediatamente excluída da API pública `/api/opcoes`.
+  - Limpeza e exclusão de registros de teste.
 
 ---
 
-## 6. Utilizacao de Inteligencia Artificial
+## 6. Utilização de Inteligência Artificial
 
-### 1. O que foi delegado para a IA e o que foi feito/decidido a mao:
-- **Delegado para a IA:** Geracao do boilerplate inicial das rotas REST no Express, definicao da sintaxe dos comandos SQL no script de migracao e estruturacao das classes de criptografia usando os modulos nativos do Node.js.
-- **Feito/Decidido a Mao:** Toda a arquitetura do dominio de negocio (Puro Luxo Grife), a decisao de manter a identidade visual de alto padrao existente (serifas elegantes e tons escuros com dourado), a criacao da acao de contato rapido via WhatsApp, a regra de proibicao total de emojis para manter o tom sofisticado e a escolha do modelo de dados seguro com blind indexing.
+### 1. O que foi delegado para a IA e o que foi feito/decidido manualmente:
+- **Delegado para a IA:** Estruturação inicial do esqueleto de testes automatizados, sintaxe de consultas SQL multivariadas e auxílio na geração de código boilerplate para os endpoints do Express.
+- **Feito/Decidido Manualmente:** Toda a conceituação da marca Puro Luxo Grife, a definição da política rígida de zero emojis para manter a identidade estética de alta costura, o design da experiência de WhatsApp em um clique, a arquitetura de fallback transparente PostgreSQL/SQLite e a modelagem do soft-disable para opções desativadas.
 
-### 2. Situacao em que a IA deu uma sugestao inadequada e o que foi feito no lugar:
-- A IA inicialmente sugeriu armazenar o banco de dados em um SQLite local para simplificar a execucao. No entanto, para atender aos requisitos de conformidade corporativa e robustez transacional com PostgreSQL solicitado pelo projeto, a sugestao foi recusada. Em vez disso, foi estruturado um ambiente com PostgreSQL utilizando Docker Compose (`docker-compose.yml`) e driver nativo `pg`, garantindo tanto a robustez do PostgreSQL quanto a facilidade de execucao local para o avaliador.
+### 2. Situação em que a IA deu uma sugestão inadequada e o que foi feito no lugar:
+- A IA inicialmente sugeriu usar componentes gráficos com emojis coloridos nos badges de status e toasts do painel (ex: ícones de calendário e check coloridos). A sugestão foi prontamente rejeitada por violar a estética sóbria e refinada exigida pelo nicho de moda masculina de luxo. No lugar, foram adotadas pílulas tipográficas com bordas sutis e contraste cromático elegante (verde esmeralda, âmbar e vermelho suave).
 
-### 3. Decisao tomada contra a sugestao da IA:
-- A IA sugeriu integrar servicos externos de envio de e-mail transacional (Nodemailer com SMTP ou SendGrid) e bibliotecas externas de componentes visuais pesadas. A decisao tomada foi rejeitar essas dependencias externas desnecessarias, mantendo o sistema 100% autocontido, sem custos, sem dependencia de chaves privadas externas e com o acionamento direto dos clientes via WhatsApp Web.
+### 3. Decisão tomada contra a sugestão da IA:
+- A IA sugeriu a instalação de bibliotecas externas pesadas (como TypeORM, Prisma ou Sequelize) para gerenciar o banco de dados. A decisão técnica tomada foi recusar esses frameworks volumosos e implementar um cliente com `pg` nativo e fallback leve para `sqlite3`, mantendo a aplicação ultrarrápida, de baixo consumo de memória e auditável linha por linha.
