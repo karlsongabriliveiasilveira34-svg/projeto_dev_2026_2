@@ -1228,3 +1228,262 @@ h3 {
     transform: none;
   }
 }
+
+/* ==========================================================================
+   SECAO DE AGENDAMENTO VIP & MODAL DE CONFIRMACAO
+   ========================================================================== */
+
+.booking-section {
+  background: #0E0E0E;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: clamp(4rem, 8vw, 7rem) 0;
+}
+
+.booking-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+.booking-header {
+  text-align: center;
+  margin-bottom: clamp(2rem, 4vw, 3.5rem);
+}
+
+.booking-header h2 {
+  font-family: var(--font-display, "Instrument Serif", serif);
+  font-size: clamp(2.2rem, 4.5vw, 3.4rem);
+  font-weight: 400;
+  margin-bottom: 1rem;
+  color: #F5F5F5;
+}
+
+.booking-header p {
+  color: #A0A0A0;
+  font-size: clamp(0.98rem, 1.4vw, 1.15rem);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.booking-alert {
+  padding: 14px 20px;
+  border-radius: 4px;
+  font-size: 13px;
+  margin-bottom: 24px;
+  background: rgba(239, 68, 68, 0.12);
+  color: #F87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.booking-form {
+  background: #141414;
+  border: 1px solid #282828;
+  border-radius: 8px;
+  padding: clamp(24px, 4vw, 40px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-field-full {
+  grid-column: 1 / -1;
+}
+
+.form-field label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #C5A880;
+  margin-bottom: 8px;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  width: 100%;
+  padding: 13px 16px;
+  background: #0B0B0B;
+  border: 1px solid #2E2E2E;
+  border-radius: 4px;
+  color: #F5F5F5;
+  font-family: inherit;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.form-field select {
+  cursor: pointer;
+}
+
+.form-field select option {
+  background: #141414;
+  color: #F5F5F5;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  outline: none;
+  border-color: #C5A880;
+  box-shadow: 0 0 0 3px rgba(197, 168, 128, 0.15);
+}
+
+.form-actions {
+  margin-top: 28px;
+  text-align: center;
+}
+
+.booking-submit {
+  width: 100%;
+  max-width: 400px;
+  padding: 16px 28px;
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+
+.booking-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Modal de Sucesso */
+body.modal-open {
+  overflow: hidden !important;
+  touch-action: none;
+}
+
+.booking-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.28s ease, visibility 0.28s ease;
+}
+
+.booking-modal-backdrop.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.booking-modal-card {
+  background: #141414;
+  border: 1px solid #C5A880;
+  border-radius: 12px;
+  max-width: 520px;
+  width: 100%;
+  padding: clamp(28px, 5vw, 44px);
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+  transform: translateY(12px) scale(0.97);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+.booking-modal-backdrop.is-open .booking-modal-card {
+  transform: translateY(0) scale(1);
+}
+
+.modal-badge {
+  display: inline-block;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #C5A880;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.booking-modal-card h3 {
+  font-family: var(--font-display, "Instrument Serif", serif);
+  font-size: 28px;
+  color: #F5F5F5;
+  margin-bottom: 10px;
+}
+
+.modal-desc {
+  color: #A0A0A0;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.booking-summary-box {
+  background: #0B0B0B;
+  border: 1px solid #282828;
+  border-radius: 6px;
+  padding: 16px 20px;
+  margin-bottom: 28px;
+  text-align: left;
+  font-size: 13px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid #1E1E1E;
+}
+
+.summary-row:last-child {
+  border-bottom: none;
+}
+
+.summary-label {
+  color: #888888;
+}
+
+.summary-value {
+  color: #F5F5F5;
+  font-weight: 600;
+}
+
+.modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-link {
+  color: #888888;
+  font-size: 0.85rem;
+  transition: color 0.2s ease;
+}
+
+.admin-link:hover {
+  color: #C5A880;
+}
+
+@media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+

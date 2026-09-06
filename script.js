@@ -364,6 +364,227 @@ function setupFooterYear() {
   if (year) year.textContent = new Date().getFullYear();
 }
 
+function setupBookingForm() {
+  const form = document.getElementById("booking-form");
+  if (!form) return;
+
+  const nomeInput = document.getElementById("booking-nome");
+  const emailInput = document.getElementById("booking-email");
+  const telefoneInput = document.getElementById("booking-telefone");
+  const tipoInput = document.getElementById("booking-tipo");
+  const dataInput = document.getElementById("booking-data");
+  const horarioInput = document.getElementById("booking-horario");
+  const obsInput = document.getElementById("booking-obs");
+  const submitBtn = document.getElementById("booking-submit-btn");
+  const alertBox = document.getElementById("booking-alert");
+  const modal = document.getElementById("booking-modal");
+  const modalCloseBtn = document.getElementById("modal-close-btn");
+  const modalWaLink = document.getElementById("modal-whatsapp-link");
+  const summaryBox = document.getElementById("booking-summary-box");
+
+  // Obtem a data atual no formato YYYY-MM-DD considerando o fuso horario local
+  function getTodayDateString() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
+  // Define data minima como hoje no input e bloqueia selecao retroativa
+  if (dataInput) {
+    const todayStr = getTodayDateString();
+    dataInput.min = todayStr;
+
+    dataInput.addEventListener("change", () => {
+      const currentToday = getTodayDateString();
+      if (dataInput.value && dataInput.value < currentToday) {
+        showAlert("A data selecionada já passou. Por favor, escolha a data de hoje ou uma data futura.");
+        dataInput.value = currentToday;
+      } else {
+        hideAlert();
+      }
+    });
+  }
+
+  // Mascara de telefone brasileira (38) 99999-9999
+  if (telefoneInput) {
+    telefoneInput.addEventListener("input", (e) => {
+      let value = e.target.value.replace(/\D/g, "");
+      if (value.length > 11) value = value.slice(0, 11);
+
+      if (value.length > 6) {
+        e.target.value = `(${value.slice(0, 2)}) ${value.slice(2, 7)}-${value.slice(7)}`;
+      } else if (value.length > 2) {
+        e.target.value = `(${value.slice(0, 2)}) ${value.slice(2)}`;
+      } else if (value.length > 0) {
+        e.target.value = `(${value}`;
+      } else {
+        e.target.value = "";
+      }
+    });
+  }
+
+  function showAlert(msg) {
+    if (!alertBox) return;
+    alertBox.textContent = msg;
+    alertBox.style.display = "block";
+    alertBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  function hideAlert() {
+    if (!alertBox) return;
+    alertBox.style.display = "none";
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    hideAlert();
+
+    const nome = nomeInput.value.trim();
+    const email = emailInput.value.trim();
+    const telefone = telefoneInput.value.trim();
+    const tipo = tipoInput.value;
+    const data = dataInput.value;
+    const horario = horarioInput.value;
+    const observacoes = obsInput.value.trim();
+
+    if (!nome || !email || !telefone || !tipo || !data || !horario) {
+      showAlert("Por favor, preencha todos os campos obrigatorios.");
+      return;
+    }
+
+    const todayStr = getTodayDateString();
+    if (data < todayStr) {
+      showAlert("Não é possível realizar agendamentos para datas passadas. Por favor, escolha uma data a partir de hoje.");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      showAlert("Informe um endereco de e-mail valido.");
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = "<span>Processando agendamento...</span>";
+
+    try {
+      const response = await fetch("/api/agendamentos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nome,
+          email,
+          telefone,
+          tipo,
+          data,
+          horario,
+          observacoes,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.sucesso) {
+        showAlert(result.mensagem || "Nao foi possivel concluir o agendamento.");
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "<span>Confirmar Solicitacao de Agendamento</span>";
+        return;
+      }
+
+      // Formatacao da data para exibicao
+      const dataParts = data.split("-");
+      const formattedDate = dataParts.length === 3 ? `${dataParts[2]}/${dataParts[1]}/${dataParts[0]}` : data;
+
+      // Monta o resumo no modal de confirmacao
+      if (summaryBox) {
+        summaryBox.innerHTML = `
+          <div class="summary-row">
+            <span class="summary-label">Cliente:</span>
+            <span class="summary-value">${escapeHtml(nome)}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Servico:</span>
+            <span class="summary-value">${escapeHtml(tipo)}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Data & Horario:</span>
+            <span class="summary-value">${formattedDate} as ${horario}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Status Inicial:</span>
+            <span class="summary-value" style="color: #D4AF37;">Pendente</span>
+          </div>
+        `;
+      }
+
+      // Prepara o link direto para o WhatsApp da loja
+      if (modalWaLink) {
+        const waMsg = encodeURIComponent(
+          `Ola! Acabei de enviar uma solicitacao de agendamento no site da Puro Luxo Grife.\n\nNome: ${nome}\nServico: ${tipo}\nData: ${formattedDate} as ${horario}`
+        );
+        modalWaLink.href = `https://wa.me/5538999000385?text=${waMsg}`;
+      }
+
+      // Exibe o modal e reseta o formulario
+      openBookingModal();
+      form.reset();
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = "<span>Confirmar Solicitacao de Agendamento</span>";
+    } catch (err) {
+      console.error("[BOOKING ERROR]", err);
+      showAlert("Erro de conexao ao enviar solicitacao. Verifique sua rede e tente novamente.");
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = "<span>Confirmar Solicitacao de Agendamento</span>";
+    }
+  });
+
+  function openBookingModal() {
+    if (!modal) return;
+    modal.classList.add("is-open");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-open");
+  }
+
+  function closeBookingModal() {
+    if (!modal) return;
+    modal.classList.remove("is-open");
+    modal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("modal-open");
+  }
+
+  if (modalCloseBtn) {
+    modalCloseBtn.addEventListener("click", closeBookingModal);
+  }
+
+  // Fechar modal ao clicar fora do card
+  if (modal) {
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        closeBookingModal();
+      }
+    });
+  }
+
+  // Fechar modal com a tecla Escape
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && modal && modal.classList.contains("is-open")) {
+      closeBookingModal();
+    }
+  });
+
+  function escapeHtml(str) {
+    if (!str) return "";
+    return str
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+}
+
 applyMediaData();
 renderSelection();
 renderLookbook();
@@ -373,6 +594,7 @@ setupMenu();
 setupReveal();
 setupVideoPause();
 setupFooterYear();
+setupBookingForm();
 
 window.PuroLuxo = {
   mediaLibrary,
@@ -382,3 +604,4 @@ window.PuroLuxo = {
   instagramItems,
   whatsapp: WHATSAPP_URL
 };
+

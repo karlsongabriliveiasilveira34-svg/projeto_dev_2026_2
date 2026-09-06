@@ -1,0 +1,32 @@
+{
+  "name": "puro-luxo-grife",
+  "version": "1.0.0",
+  "description": "Sistema de Agendamento VIP e Painel de Gestao - Puro Luxo Grife",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "db:init": "node src/scripts/initDb.js",
+    "db:seed": "node src/scripts/seed.js"
+  },
+  "keywords": [
+    "puro-luxo",
+    "agendamento",
+    "admin",
+    "postgresql",
+    "express"
+  ],
+  "author": "Puro Luxo Grife",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.2.0",
+    "express-session": "^1.18.0",
+    "helmet": "^7.1.0",
+    "pg": "^8.11.5",
+    "sqlite3": "^6.0.1"
+  }
+}

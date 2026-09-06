@@ -52,6 +52,7 @@
           <a href="#selecao">Seleção</a>
           <a href="#estilo">Estilo</a>
           <a href="#marca">A marca</a>
+          <a href="#agendamento">Agendamento</a>
           <a href="#visite">Visite</a>
           <a href="#instagram">Instagram</a>
         </nav>
@@ -70,6 +71,7 @@
           <a href="#selecao">Seleção</a>
           <a href="#estilo">Estilo</a>
           <a href="#marca">A marca</a>
+          <a href="#agendamento">Agendamento</a>
           <a href="#visite">Visite</a>
           <a href="#instagram">Instagram</a>
         </nav>
@@ -85,7 +87,7 @@
           <h1 id="hero-title">Presença não<br>se improvisa.</h1>
           <p class="hero-text">Moda masculina de alto padrão para homens que valorizam identidade, elegância e autenticidade em cada escolha.</p>
           <div class="hero-actions">
-            <a class="button button-dark" href="https://wa.me/5538999000385?text=Ol%C3%A1%2C%20conheci%20a%20Puro%20Luxo%20pelo%20site%20e%20gostaria%20de%20receber%20atendimento." target="_blank" rel="noopener">Falar com um consultor</a>
+            <a class="button button-dark" href="#agendamento">Agendar Atendimento VIP</a>
             <a class="button button-ghost" href="#selecao">Conhecer a seleção</a>
           </div>
           <p class="microcopy">Envios para todo o Brasil.</p>
@@ -208,6 +210,77 @@
         <div class="instagram-grid" data-instagram-grid></div>
       </section>
 
+      <section class="section booking-section section-dark" id="agendamento" aria-labelledby="booking-title">
+        <div class="booking-container reveal">
+          <div class="booking-header">
+            <p class="eyebrow">Experiência Exclusiva</p>
+            <h2 id="booking-title">Agendamento de Atendimento VIP</h2>
+            <p>Reserve uma sessão personalizada de consultoria de estilo, prova sob medida ou curadoria exclusiva com nossos consultores.</p>
+          </div>
+
+          <div id="booking-alert" class="booking-alert" style="display: none;" role="alert"></div>
+
+          <form id="booking-form" class="booking-form" novalidate>
+            <div class="form-grid">
+              <div class="form-field">
+                <label for="booking-nome">Nome Completo *</label>
+                <input type="text" id="booking-nome" name="nome" placeholder="Seu nome completo" required autocomplete="name">
+              </div>
+
+              <div class="form-field">
+                <label for="booking-email">E-mail *</label>
+                <input type="email" id="booking-email" name="email" placeholder="seuemail@exemplo.com" required autocomplete="email">
+              </div>
+
+              <div class="form-field">
+                <label for="booking-telefone">WhatsApp / Telefone *</label>
+                <input type="tel" id="booking-telefone" name="telefone" placeholder="(38) 99999-9999" required autocomplete="tel" maxlength="15">
+              </div>
+
+              <div class="form-field">
+                <label for="booking-tipo">Experiência Desejada *</label>
+                <select id="booking-tipo" name="tipo" required>
+                  <option value="" disabled selected>Selecione um serviço...</option>
+                  <option value="Consultoria de Imagem & Estilo">Consultoria de Imagem & Estilo</option>
+                  <option value="Prova Privada & Ajuste Sob Medida">Prova Privada & Ajuste Sob Medida</option>
+                  <option value="Curadoria de Colecao / Personal Shopper">Curadoria de Coleção / Personal Shopper</option>
+                  <option value="Atendimento VIP Online (Envios)">Atendimento VIP Online (Envios Nacionais)</option>
+                </select>
+              </div>
+
+              <div class="form-field">
+                <label for="booking-data">Data de Preferência *</label>
+                <input type="date" id="booking-data" name="data" required>
+              </div>
+
+              <div class="form-field">
+                <label for="booking-horario">Horário Preferencial *</label>
+                <select id="booking-horario" name="horario" required>
+                  <option value="" disabled selected>Selecione o horário...</option>
+                  <option value="10:00">10:00</option>
+                  <option value="11:30">11:30</option>
+                  <option value="14:00">14:00</option>
+                  <option value="15:30">15:30</option>
+                  <option value="17:00">17:00</option>
+                  <option value="18:30">18:30</option>
+                </select>
+              </div>
+
+              <div class="form-field form-field-full">
+                <label for="booking-obs">Observações ou Preferências de Estilo (Opcional)</label>
+                <textarea id="booking-obs" name="observacoes" rows="3" placeholder="Ex: Procura de trajes para evento corporativo, camisaria sob medida, marcas de interesse..."></textarea>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" id="booking-submit-btn" class="button button-light booking-submit">
+                <span>Confirmar Solicitação de Agendamento</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
       <section class="visit section" id="visite" aria-labelledby="visit-title">
         <div class="visit-card reveal">
           <p class="eyebrow">Visite a loja</p>
@@ -251,7 +324,9 @@
         <a href="#selecao">Seleção</a>
         <a href="#estilo">Estilo</a>
         <a href="#marca">A marca</a>
+        <a href="#agendamento">Agendamento</a>
         <a href="#visite">Visite</a>
+        <a href="/login" class="admin-link">Área Administrativa</a>
       </nav>
       <div class="footer-contact">
         <a href="https://www.instagram.com/puroluxogrife/" target="_blank" rel="noopener">Instagram</a>
@@ -267,6 +342,24 @@
 
     <div class="mobile-cta">
       <a href="https://wa.me/5538999000385?text=Ol%C3%A1%2C%20conheci%20a%20Puro%20Luxo%20pelo%20site%20e%20gostaria%20de%20receber%20atendimento." target="_blank" rel="noopener">Atendimento pelo WhatsApp</a>
+    </div>
+
+    <!-- Modal de Confirmacao Visual de Sucesso (posicionado na raiz para evitar conflito de transform/fixed) -->
+    <div id="booking-modal" class="booking-modal-backdrop" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="booking-modal-card">
+        <p class="modal-badge">Solicitação Recebida</p>
+        <h3 id="modal-title">Atendimento VIP Agendado</h3>
+        <p class="modal-desc">Sua solicitação foi registrada no sistema com status <strong>pendente</strong>. Nossa equipe entrará em contato para confirmar todos os detalhes.</p>
+        
+        <div class="booking-summary-box" id="booking-summary-box">
+          <!-- Inserido dinamicamente via JS -->
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="button button-light" id="modal-close-btn">Concluir</button>
+          <a id="modal-whatsapp-link" href="#" target="_blank" rel="noopener" class="button button-ghost">Falar com Consultor no WhatsApp</a>
+        </div>
+      </div>
     </div>
 
     <script src="script.js" defer></script>
